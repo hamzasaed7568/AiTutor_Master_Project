@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Tutor Dashboard</title>
+    
+    <style>
+        :root {
+            --smoky-white: #F5F5F5;
+            --pure-white: #FFFFFF;
+            --accent-green: #2ecc71;
+            --soft-gray: #7f8c8d;
+            --border-radius: 12px;
+            --box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            margin: 0;
+            padding: 40px 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--smoky-white);
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Central Card */
+        .main-card {
+            background-color: var(--pure-white);
+            padding: 40px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            width: 100%;
+            max-width: 700px; /* Thora bara kiya hai taake result acha lage */
+            text-align: center;
+            border: 1px solid rgba(0,0,0,0.03);
+            margin-top: 20px;
+        }
+
+        .brand-logo { font-size: 2.5rem; font-weight: 700; color: var(--accent-green); margin-bottom: 5px; }
+        .brand-subtitle { font-size: 1.1rem; color: var(--soft-gray); margin-bottom: 30px; font-weight: 400; }
+
+        /* Form Styles */
+        form { display: flex; flex-direction: column; gap: 15px; max-width: 500px; margin: 0 auto; }
+        .form-label { font-size: 1rem; color: #555; text-align: left; margin-bottom: -5px; font-weight: 600; }
+        .input-field { padding: 15px; border: 2px solid #e1e1e1; border-radius: var(--border-radius); font-size: 1.1rem; transition: var(--transition); background-color: var(--smoky-white); }
+        .input-field:focus { border-color: var(--accent-green); outline: none; box-shadow: 0 0 10px rgba(46, 204, 113, 0.1); }
+        
+        .search-btn { background-color: var(--accent-green); color: var(--pure-white); border: none; padding: 15px; border-radius: var(--border-radius); font-size: 1.2rem; font-weight: 600; cursor: pointer; transition: var(--transition); margin-top: 10px; }
+        .search-btn:hover { background-color: #27ae60; transform: translateY(-2px); }
+
+        /* --- NEW: Loading Spinner Animation --- */
+        .loading-container {
+            display: none; /* Initially hidden */
+            padding: 20px;
+        }
+        .spinner {
+            border: 4px solid rgba(0,0,0,0.05);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border-left-color: var(--accent-green);
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .loading-text { color: var(--accent-green); font-weight: 600; font-size: 1.1rem; }
+
+        /* Result Styles */
+        .result-container {
+            text-align: left;
+            border-left: 5px solid var(--accent-green);
+            padding-left: 20px;
+            margin-top: 20px;
+        }
+        .result-title { font-size: 1.4rem; color: #333; font-weight: 700; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 20px;}
+        .topic-badge { background-color: #e8f8f5; color: #27ae60; padding: 6px 15px; border-radius: 20px; font-weight: 700; display: inline-block; font-size: 1rem; margin-bottom: 20px;}
+        
+        .ai-section { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+        .ai-heading { font-weight: 700; color: #2c3e50; font-size: 1.1rem; }
+        .ai-response { background-color: #f8f9fa; padding: 18px; border-radius: 8px; font-style: italic; color: #444; border-left: 4px solid #3498db; line-height: 1.6; }
+        .book-extract { font-size: 0.95rem; color: #666; background: #fafafa; padding: 15px; border-radius: 8px; border: 1px dashed #ccc; max-height: 200px; overflow-y: auto; line-height: 1.5; }
+        
+        .error-card { background-color: #fff3cd; color: #856404; padding: 20px; border-radius: var(--border-radius); border-left: 5px solid #ffc107; text-align: center; }
+
+        /* --- NEW: Check Another Student Button --- */
+        .reset-btn {
+            display: inline-block;
+            background-color: transparent;
+            color: var(--soft-gray);
+            border: 2px solid #ddd;
+            padding: 12px 25px;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            margin-top: 30px;
+            transition: var(--transition);
+        }
+        .reset-btn:hover {
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+        }
+    </style>
+
+    <script>
+        // JavaScript for showing loading animation and hiding form
+        function showLoading() {
+            document.getElementById('searchForm').style.display = 'none';
+            document.getElementById('loadingContainer').style.display = 'block';
+        }
+    </script>
+</head>
+<body>
+    
+    <div class="main-card">
+        <div class="brand-logo">AI Tutor</div>
+        <div class="brand-subtitle">Find your customized learning path</div>
+
+        {% if not result %}
+            <form id="searchForm" action="/path" method="get" onsubmit="showLoading()">
+                <label for="student_id" class="form-label">Student ID</label>
+                <input 
+                    type="text" 
+                    id="student_id" 
+                    name="student_id" 
+                    placeholder="E.g. 295741" 
+                    class="input-field" 
+                    required
+                >
+                <button type="submit" class="search-btn">Search Path</button>
+            </form>
+
+            <div id="loadingContainer" class="loading-container">
+                <div class="spinner"></div>
+                <div class="loading-text">⏳ AI is analyzing past records... Please wait.</div>
+            </div>
+        {% endif %}
+
+        {% if result %}
+            {% if result.error %}
+                <div class="error-card">
+                    <strong>Error:</strong> {{ result.error }}
+                </div>
+            {% else %}
+                <div class="result-container">
+                    <div class="result-title">Analysis for Student ID: {{ result.id_student }}</div>
+                    
+                    <div>
+                        <span class="ai-heading">Identified Weak Topic:</span> 
+                        <span class="topic-badge">{{ result.weak_topic }}</span>
+                    </div>
+                    
+                    <div class="ai-section">
+                        <div class="ai-heading">🎯 AI Tutor's Recommendation:</div>
+                        <div class="ai-response">
+                            "{{ result.justification }}"
+                        </div>
+                    </div>
+
+                    <div class="ai-section">
+                        <div class="ai-heading">📚 Reference Study Material:</div>
+                        <div class="book-extract">
+                            {{ result.book_extract }}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <a href="/" class="reset-btn">← Check Another Student</a>
+        {% endif %}
+    </div>
+
+</body>
+</html>

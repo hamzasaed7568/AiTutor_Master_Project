@@ -1,0 +1,6 @@
+.venv/
+dataset/
+chroma_db/
+.vscode/
+plots/
+thesis_evaluation_results.csv
