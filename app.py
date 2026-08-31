@@ -1,7 +1,7 @@
 import os
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 import torch
-torch.set_num_threads(4)  # CPU threads ko limit karne ke liye
+torch.set_num_threads(4) 
 import pandas as pd
 from flask import Flask, render_template, request
 from transformers import pipeline
@@ -11,12 +11,8 @@ from langchain_core.prompts import PromptTemplate
 
 app = Flask(__name__)
 
-# =========================================================
-# STEP 1: INITIALIZATION (Loaded once on startup)
-# =========================================================
 print("Backend is loading...")
 
-# Load cleaned OULAD student data
 student_data = pd.read_csv("dataset/processed_dataset/oulad/cleaned_student_performance.csv")
 
 # Initialize HuggingFace models
