@@ -9,12 +9,12 @@ BOOK_PATH = "dataset/raw_dataset/books/Introduction_To_Computer_Science.pdf"
 CHROMA_DIR = "./chroma_db"
 
 def clean_text(text):
-    """Text ko clean karne ka function (extra spaces aur newlines remove karna)"""
+    """Text cleaning function (extra spaces aur newlines)"""
     text = re.sub(r'\n+', ' ', text)
     text = re.sub(r'\s+', ' ', text)
     return text.strip()
 
-print("Step 1: PDF Book load aur read ho rahi hai...")
+print("Step 1: PDF Book is loading...")
 doc = fitz.open(BOOK_PATH)
 full_text = ""
 
@@ -23,7 +23,7 @@ for page_num in range(len(doc)):
     raw_text = page.get_text()
     full_text += clean_text(raw_text) + " "
 
-print(f"Book successfuly read ho gayi! Total characters: {len(full_text)}")
+print(f"Book read successfully! Total characters: {len(full_text)}")
 
 print("\nStep 2: Text Chunking start ho rahi hai...")
 text_splitter = RecursiveCharacterTextSplitter(
@@ -33,11 +33,11 @@ text_splitter = RecursiveCharacterTextSplitter(
 chunks = text_splitter.split_text(full_text)
 print(f"Total Chunks ban gaye: {len(chunks)}")
 
-print("\nStep 3: Embedding Model load ho raha hai (Free HuggingFace Model)...")
+print("\nStep 3: Embedding Model are loading (Free HuggingFace Model)...")
 embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 
-print("\nStep 4: Vector Database (ChromaDB) ban raha hai.")
-print("⏳ Please wait, poori book process hone mein aapke PC ke hisaab se 2 se 5 minute lag sakte hain...")
+print("\nStep 4: Vector Database (ChromaDB) is making.")
+print("⏳ Please wait, full is book is processing and it gonna take time according to your PC...")
 
 vector_db = Chroma.from_texts(
     texts=chunks,
@@ -45,4 +45,4 @@ vector_db = Chroma.from_texts(
     persist_directory=CHROMA_DIR
 )
 
-print("\n🎉 Mubarak ho! Book ki preprocessing aur Vector DB setup 100% complete ho gaya hai.")
+print("\n🎉 Congrats! Book preprocessing and Vector DB setup completed 100%.")
